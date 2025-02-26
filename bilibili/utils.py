@@ -64,29 +64,71 @@ def getCommentsByVideo(aid):
     print ("Done")
     return list(itertools.chain(*comments))
 
-def getLevelsByComments(comments):
-    lv=[0,0,0,0,0,0,0]
+def getLevelsByComments(comments=-1):
+    lvs=pd.Series(0,index=range(7),name='Levels')
+    if comments==-1:
+        return lvs
     for comment in comments:
         user_level = comment['member']['level_info']['current_level']
-        lv[user_level]+=1
-    return lv
+        lvs[user_level]+=1
+    return lvs
 
-def ShowPie(frm):
+def getSexByComments(comments=-1):
+    sex=pd.Series(0,index=['man','woman','secret'],name='Sex')
+    if comments==-1:
+        return sex
+    for comment in comments:
+        user_sex=comment['member']['sex']
+        if user_sex=='男':
+            sex['man']+=1
+        elif user_sex=='女':
+            sex['woman']+=1
+        else:
+            sex['secret']+=1
+    return sex
+
+def getVipsByComments(comments=-1):
+    vips=pd.Series(0,index=['No','Month','Year'],name='Vips')
+    if comments==-1:
+            return vips
+    for comment in comments:
+        vip = comment['member']['vip']['vipType']
+        vips[vip]+=1
+    return vips
+
+def getStatesByComments(comments=-1):
+    states=pd.Series(0,index=['Normal','Hide'],name='States')
+    if comments==-1:
+        return states
+    for comment in comments:
+        state = comment['state']
+        if state:
+            states[1]+=1
+        else:
+            states[0]+=1
+    return states
+
+def addFrame(frm,pos):
+    plt.subplot(2,2,pos)
     frm=frm[frm>0]
     frm_sum=frm.sum()
     explode=1/(frm/frm_sum)/300
     explode=explode.clip(upper=1)
-    frm.plot.pie(autopct='%1.1f%%',explode=explode)
-    plt.show()
-
+    plt.pie(frm,startangle=90,explode=explode,autopct='%1.1f%%', labels=frm.index)
+    plt.title(frm.name)
+    
 
 if __name__ == '__main__':
-    bvs=getVideoByUser(208259)
-    print (bvs)
-    cmts=getCommentsByVideo(bvs[1])
+    cmts=getCommentsByVideo(36676199)
     print ('done')
     lv=getLevelsByComments(cmts)
-    print (lv)
+    print(lv)
+    sex=getSexByComments(cmts)
+    print(sex)
+    st=getStatesByComments(cmts)
+    print(st)
+    vip=getVipsByComments(cmts)
+    print(vip)
 
 
     
