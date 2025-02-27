@@ -3,6 +3,8 @@ import pandas as pd
 import itertools
 import matplotlib.pyplot as plt
 from DrissionPage import ChromiumPage
+import time
+import os
 
 def getVideoByUser(uid,num=-1):
     url=f'https://space.bilibili.com/{uid}/video'
@@ -29,9 +31,12 @@ def getVideoByUser(uid,num=-1):
             break
     return bv
 
-def getCommentsByVideo(aid):
+def getCommentsByVideo(aid,perpage):
     comments=[]
     size=0
+    max_get=20
+    total=0
+
     url = "https://api.bilibili.com/x/v2/reply/main"
     params={
         'oid':aid,
@@ -53,14 +58,19 @@ def getCommentsByVideo(aid):
         if data['code']!=0:
             print(data['code'])
             break
-        
+        max_get-=1
+        if not max_get:
+            time.sleep(3)
+            max_get=20
         cmts=data['data']['replies']
         if not cmts:
             break
         comments.append(cmts)
         size+=len(cmts)
-        params['next']+=1
-        print ("Got comments",size)
+        params['next']+=perpage
+        total+=perpage*20
+        os.system('cls')
+        print ("Got comments",size,'/',total)
     print ("Done")
     return list(itertools.chain(*comments))
 
@@ -112,9 +122,9 @@ def addFrame(frm,pos):
     plt.subplot(2,2,pos)
     frm=frm[frm>0]
     frm_sum=frm.sum()
-    explode=1/(frm/frm_sum)/300
+    explode=1/(frm/frm_sum)/50
     explode=explode.clip(upper=1)
-    plt.pie(frm,startangle=90,explode=explode,autopct='%1.1f%%', labels=frm.index)
+    plt.pie(frm,explode=explode,autopct='%1.1f%%', labels=frm.index)
     plt.title(frm.name)
     
 
@@ -129,7 +139,6 @@ if __name__ == '__main__':
     print(st)
     vip=getVipsByComments(cmts)
     print(vip)
-
 
     
     
